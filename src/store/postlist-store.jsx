@@ -1,70 +1,77 @@
 import { createContext, useReducer } from "react";
 
-export const PostList=createContext({
-    postList:[],
-    addpost:()=>{},
-    deletePost:()=>{},
+export const PostList = createContext({
+  postList: [],
+  addpost: () => {},
+  addInitialPosts: () => {},
+  deletePost: () => {},
 });
-const postListReducer=(currentPostList,action)=>{
-    let newPostList =currentPostList
-    if(action.type==='DELETE_POST'){
-        newPostList=currentPostList.filter(post=>post.id !==action.payload.postId)
 
-    }else if(action.type==="ADD_POST"){
-        newPostList=[action.payload,...currentPostList]
-    }
-    return newPostList;
+const postListReducer = (currentPostList, action) => {
+  let newPostList = currentPostList;
 
-}
-const PostListProvider=({children})=>{
-    const [postList,dispatchPostList]=useReducer(postListReducer,DEFAULT_POST_LIST);
-    const addpost=(userId,postTitle,postBody,reactions,tags)=>{
-dispatchPostList({
-    type:'ADD_POST',
-    payload:{
-        id:Date.now(),
-        title:postTitle,
-        body:postBody,
-        reactions:reactions,
-        userId:userId,
-        tags:tags,
-    }
-})
-    }
-    const deletePost=(postId)=>{
-        // console.log(`delete post called for :${postId}`)
-        dispatchPostList({
-            type:'DELETE_POST',
-            payload:{
-                postId,
+  if (action.type === "DELETE_POST") {
+    newPostList = currentPostList.filter(
+      (post) => post.id !== action.payload.postId
+    );
+  }
+  else if(action.type=="ADD_INITIAL_POSTS"){
+    newPostList=action.payload.posts
+  }
+   else if (action.type === "ADD_POST") {
+    newPostList = [action.payload, ...currentPostList];
+  }
 
-            },
-        })
-    }
-    return < PostList.Provider value={
-        {
-        postList:postList,
-        addpost:addpost,
-        deletePost:deletePost,}
-    }>{children}</PostList.Provider>
+  return newPostList;
+};
 
-}
-const DEFAULT_POST_LIST=[{
-    id:'1',
-    title:'Going to mumbai',
-    body:'hi friens my name is dolly mamgai hope you are doing greate ',
-    reactions:12,
-    userId:'user-id 12',
-    tags:['vacation','mumbai','emjoying']
+const PostListProvider = ({ children }) => {
+  const [postList, dispatchPostList] = useReducer(postListReducer, []);
 
-},
-{
-    id:'3',
-    title:'Going to mumbai',
-    body:'hi friens my name is dolly mamgai hope you are doing greate ',
-    reactions:1,
-    userId:'user-12',
-    tags:['vaction','mumbai','enjoying']
+  const addpost = (userId, postTitle, postBody, reactions, tags) => {
+    dispatchPostList({
+      type: "ADD_POST",
+      payload: {
+        id: Date.now(),
+        title: postTitle,
+        body: postBody,
+        reactions: reactions,
+        userId: userId,
+        tags: tags,
+      },
+    });
+  };
 
-}]
- export default PostListProvider;
+  const addInitialPosts = (posts) => {
+    dispatchPostList({
+      type: "ADD_INITIAL_POSTS", 
+      payload: {
+        posts,
+      },
+    });
+  };
+
+  const deletePost = (postId) => {
+    dispatchPostList({
+      type: "DELETE_POST",
+      payload: {
+        postId,
+      },
+    });
+  };
+
+  return (
+    <PostList.Provider
+      value={{
+        postList: postList,
+        addpost: addpost,
+        addInitialPosts: addInitialPosts,
+        deletePost: deletePost,
+      }}
+    >
+      {children}
+    </PostList.Provider>
+  );
+};
+
+export default PostListProvider;
